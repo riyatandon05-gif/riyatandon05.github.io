@@ -1,0 +1,802 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Artist Management System</title>
+  <style>
+    /* Body styling */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ffd6ff, #ffe6b3, #cce0ff, #ffebcc, #e6ccff);
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      color: #333;
+    }
+
+    /* Header styling */
+    h1 {
+      background: linear-gradient(90deg, #800080, #ff6600, #ffcc00, #ff3399, #3399ff);
+      color: #fff;
+      padding: 20px 0;
+      border-radius: 0 0 30px 30px;
+      margin: 0;
+      font-size: 2.4em;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Container for artist cards */
+    .container {
+      margin: 30px auto;
+      max-width: 1200px;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    /* Artist card styling */
+    .artist-card {
+      display: inline-block;
+      width: 280px;
+      margin: 15px;
+      padding: 20px;
+      background: linear-gradient(135deg, #ff99ff, #ffcc66, #66ccff, #ffcccc, #cc99ff);
+      border-radius: 25px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .artist-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.25);
+    }
+
+    /* Artist image */
+    .artist-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+      border: 3px solid #ff33cc;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Artist name */
+    .artist-card h3 {
+      color: #800080;
+      margin: 12px 0 10px 0;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      margin: 6px;
+      font-weight: 600;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.08);
+      opacity: 0.9;
+    }
+
+    /* Button colors */
+    .book-btn { background: #ff33cc; color: white; } /* pink */
+    .vc-btn { background: #ffcc00; color: black; } /* yellow */
+    .msg-btn { background: #3399ff; color: white; } /* blue */
+    .cancel-btn { background: #ff6600; color: white; } /* orange */
+  </style>
+</head>
+<body>
+
+  <h1>🎶 Artist Management System</h1>
+
+  <!-- Login / Signup Section -->
+    <div class="container auth-box">
+      <h2 id="authTitle">User Login</h2> 
+      <div id="signupFields" style="display: none;">
+        <input type="text" id="fullName" placeholder="Full Name"><br><br>
+        <input type="tel" id="phone" placeholder="Phone Number"><br><br>
+        <!-- Artist-specific fields -->
+        <div id="artistSignupFields" style="display: none;">
+          <select id="artistTypeSignup">
+            <option value="">-- Select Your Category --</option>
+            <option value="Singer">Singer</option>
+            <option value="Dancer">Dancer</option>
+            <option value="Comedian">Comedian</option>
+            <option value="Rapper">Rapper</option>
+            <option value="Poet">Poet</option>
+          </select><br><br>
+          <input type="number" id="artistPrice" placeholder="Price per event (₹)"><br><br>
+        </div>
+      </div>
+      <input type="text" id="username" placeholder="Enter Username"><br><br>
+      <input type="password" id="password" placeholder="Enter Password"><br><br>
+      <select id="role" onchange="handleRoleChange()">
+        <option value="">-- Select Role --</option>
+        <option value="user">User</option>
+        <option value="artist">Artist</option>
+      </select><br><br>
+      <button id="authButton" onclick="loginUser()">Login</button>
+      <p id="authResult"></p>
+      <p id="authToggle">
+        <a href="#" onclick="toggleAuth(event)">Don't have an account? Sign up</a>
+        <br><a href="#" onclick="openForgotPasswordModal(event)" style="font-size: 0.9em; margin-top: 5px; display: inline-block;">Forgot Password?</a>
+      </p>
+    </div>
+
+  <!-- Budget + Artist Type Section -->
+  <div class="container" id="budgetSection" style="display:none;">
+    <h3>Find Artists</h3>
+    <label>Artist Type:</label>
+    <select id="artistType" onchange="applyFilter()">
+      <option value="">-- Select Type --</option>
+      <option value="Singer">Singer</option>
+      <option value="Dancer">Dancer</option>
+      <option value="Comedian">Comedian</option>
+      <option value="Rapper">Rapper</option>
+      <option value="Poet">Poet</option>
+    </select>
+    <p id="budgetResult" style="display:none; color:green; font-weight:bold;"></p>
+    <div id="artistCards" style="margin-top:20px;"></div>
+    <div id="paginationControls" style="margin-top: 20px;"></div>
+  </div>
+
+  <!-- Artist Profile Section -->
+  <div class="container" id="artistProfileSection" style="display:none;">
+    <h2 id="artistWelcome"></h2>
+    <div id="artistProfileDetails">
+      <!-- Artist details will be populated here by JavaScript -->
+    </div>
+    <button onclick="openEditProfileModal()" class="book-btn" style="margin-top: 15px; display: none;" id="editProfileBtn">Edit Profile</button>
+    <div id="artistDashboard" style="margin-top: 20px;">
+      <h3>Your Requests</h3>
+      <div id="artistRequests"></div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal (for Artists) -->
+  <div id="editProfileModal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close-btn" onclick="closeEditModal()">&times;</span>
+      <h3>Edit Your Profile</h3>
+      <label for="editArtistPrice">Price (₹):</label><br>
+      <input type="number" id="editArtistPrice"><br><br>
+      <label for="editArtistImg">Image URL:</label><br>
+      <input type="text" id="editArtistImg"><br><br>
+      <label for="editArtistVideo">YouTube Video URL (embed link):</label><br>
+      <input type="text" id="editArtistVideo"><br><br>
+      <button onclick="saveProfileChanges()" class="book-btn">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close-btn" onclick="closeReviewModal()">&times;</span>
+      <h3 id="reviewModalArtistName"></h3>
+      <p>Your Rating:</p>
+      <div class="star-rating">
+        <span data-value="1" onclick="setRating(1)">☆</span>
+        <span data-value="2" onclick="setRating(2)">☆</span>
+        <span data-value="3" onclick="setRating(3)">☆</span>
+        <span data-value="4" onclick="setRating(4)">☆</span>
+        <span data-value="5" onclick="setRating(5)">☆</span>
+      </div>
+      <input type="hidden" id="reviewRating" value="0">
+      <br>
+      <textarea id="reviewMessage" placeholder="Write your review..." rows="4"></textarea>
+      <br><br>
+      <button onclick="submitReview()" class="book-btn">Submit Review</button>
+    </div>
+  </div>
+
+  <!-- Display Reviews Modal -->
+  <div id="displayReviewsModal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close-btn" onclick="closeDisplayReviewsModal()">&times;</span>
+      <h3 id="displayReviewsArtistName"></h3>
+      <div id="reviewsList">
+        <!-- Reviews will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="modal">
+    <div class="modal-box">
+      <span class="modal-close-btn" onclick="closeForgotPasswordModal()">&times;</span>
+      <h3>Recover Password</h3>
+      <p>Enter your username to find your account.</p>
+      <input type="text" id="forgotUsername" placeholder="Username"><br><br>
+      <button onclick="recoverPassword()" class="book-btn">Recover</button>
+    </div>
+  </div>
+
+  <style>
+    /* Modal base style */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-box {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+    }
+    .modal-close-btn {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .star-rating span {
+      cursor: pointer; font-size: 2em; color: #ffcc00;
+    }
+  </style>
+
+  <script>
+let selectedArtist = "";
+let loggedInUser = "";
+let loggedInRole = "";
+const users = []; // In-memory store for user accounts
+const requests = []; // In-memory store for user-artist requests
+
+let currentPage = 1;
+const rowsPerPage = 6; // Display 6 artists per page
+let filteredArtists = [];
+
+// Moved artists data to the global scope to act as a database
+const artists = [
+  {name: "Arijit Singh", type: "Singer", price: 20000, contact:"arijit@mail.com | 9876543210", video:"https://www.youtube.com/embed/RJkyD32G2m8", img: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Arijit_Singh_at_a_concert_in_2018.jpg", reviews: []},
+  {name: "Neha Kakkar", type: "Singer", price: 30000, contact:"neha@mail.com | 9876543211", video:"https://www.youtube.com/embed/J2_A6GBC3yA", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Neha_Kakkar_at_the_Launch_of_MTV_Unplugged_Season_6.jpg/800px-Neha_Kakkar_at_the_Launch_of_MTV_Unplugged_Season_6.jpg", reviews: []},  
+  {name: "Remo D'Souza", type: "Dancer", price: 15000, contact:"remo@mail.com | 9876543212", video:"https://www.youtube.com/embed/VYOjWnS4cMY", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Remo_D%27souza_at_the_special_screening_of_the_film_%27A_Flying_Jatt%27.jpg/800px-Remo_D%27souza_at_the_special_screening_of_the_film_%27A_Flying_Jatt%27.jpg", reviews: []},
+  {name: "Zakir Khan", type: "Comedian", price: 10000, contact:"zakir@mail.com | 9876543213", video:"https://www.youtube.com/embed/sIl8vsWrD8o", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Zakir_Khan_at_the_screening_of_his_show_Chacha_Vidhayak_Hain_Humare.jpg/800px-Zakir_Khan_at_the_screening_of_his_show_Chacha_Vidhayak_Hain_Humare.jpg", reviews: []},
+  {name: "Shreya Ghoshal", type: "Singer", price: 25000, contact:"shreya@mail.com | 9876543216", video:"https://www.youtube.com/embed/Hq4aePo5a9w", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Shreya_Ghoshal_at_the_65th_National_Film_Awards_in_New_Delhi.jpg/800px-Shreya_Ghoshal_at_the_65th_National_Film_Awards_in_New_Delhi.jpg", reviews: []},
+  {name: "Sonu Nigam", type: "Singer", price: 28000, contact:"sonu@mail.com | 9876543217", video:"https://www.youtube.com/embed/O1-3242hQjQ", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Sonu_Nigam_at_the_red_carpet_of_BIG_Star_Entertainment_Awards_2012.jpg/800px-Sonu_Nigam_at_the_red_carpet_of_BIG_Star_Entertainment_Awards_2012.jpg", reviews: []},  
+  {name: "Sunidhi Chauhan", type: "Singer", price: 22000, contact:"sunidhi@mail.com | 9876543218", video:"https://www.youtube.com/embed/V2L4a-1d7gI", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Sunidhi_Chauhan_at_the_launch_of_%27Indian_Idol_9%27.jpg/800px-Sunidhi_Chauhan_at_the_launch_of_%27Indian_Idol_9%27.jpg", reviews: []},
+  {name: "Jubin Nautiyal", type: "Singer", price: 26000, contact:"jubin@mail.com | 9876543219", video:"https://www.youtube.com/embed/k4yXQkG2s1E", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Jubin_Nautiyal_at_the_success_party_of_his_song_%27Raataan_Lambiyan%27.jpg/800px-Jubin_Nautiyal_at_the_success_party_of_his_song_%27Raataan_Lambiyan%27.jpg", reviews: []},
+  {name: "Armaan Malik", type: "Singer", price: 24000, contact:"armaan@mail.com | 9876543220", video:"https://www.youtube.com/embed/2-7o56Jrm44", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Armaan_Malik_at_the_screening_of_the_film_M.S._Dhoni_-_The_Untold_Story.jpg/800px-Armaan_Malik_at_the_screening_of_the_film_M.S._Dhoni_-_The_Untold_Story.jpg", reviews: []},
+  {name: "Palak Muchhal", type: "Singer", price: 19000, contact:"palak@mail.com | 9876543221", video:"https://www.youtube.com/embed/T-g-j1c4_50", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Palak_Muchhal_at_the_special_screening_of_the_film_Kaabil.jpg/800px-Palak_Muchhal_at_the_special_screening_of_the_film_Kaabil.jpg", reviews: []},
+  {name: "Atif Aslam", type: "Singer", price: 38000, contact:"atif@mail.com | 9876543222", video:"https://www.youtube.com/embed/6-wEAeNcA9o", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Atif_Aslam_at_the_15th_Lux_Style_Awards_in_2016.jpg/800px-Atif_Aslam_at_the_15th_Lux_Style_Awards_in_2016.jpg", reviews: []},
+  {name: "Shaan", type: "Singer", price: 21000, contact:"shaan@mail.com | 9876543223", video:"https://www.youtube.com/embed/p8gx3iIL_pA", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Shaan_at_the_launch_of_his_app.jpg/800px-Shaan_at_the_launch_of_his_app.jpg", reviews: []},
+  {name: "Prabhu Deva", type: "Dancer", price: 20000, contact:"prabhu@mail.com | 9876543224", video:"https://www.youtube.com/embed/l_o2B3-62qM", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Prabhu_Deva_at_the_special_screening_of_Tutak_Tutak_Tutiya.jpg/800px-Prabhu_Deva_at_the_special_screening_of_Tutak_Tutak_Tutiya.jpg", reviews: []},
+  {name: "Terence Lewis", type: "Dancer", price: 18000, contact:"terence@mail.com | 9876543225", video:"https://www.youtube.com/embed/y_88aF6O2sU", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Terence_Lewis_at_the_launch_of_T-Series%27_new_single_%27Befikra%27.jpg/800px-Terence_Lewis_at_the_launch_of_T-Series%27_new_single_%27Befikra%27.jpg", reviews: []},  
+  {name: "Geeta Kapoor", type: "Dancer", price: 16000, contact:"geeta@mail.com | 9876543226", video:"https://www.youtube.com/embed/GzzG8Gg23ec", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Geeta_Kapoor_at_the_launch_of_DID_L%27il_Masters_Season_3.jpg/800px-Geeta_Kapoor_at_the_launch_of_DID_L%27il_Masters_Season_3.jpg", reviews: []},  
+  {name: "Shakti Mohan", type: "Dancer", price: 17000, contact:"shakti@mail.com | 9876543227", video:"https://www.youtube.com/embed/8ySS-Wj-C7I", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Shakti_Mohan_at_the_screening_of_the_film_Nawabzaade.jpg/800px-Shakti_Mohan_at_the_screening_of_the_film_Nawabzaade.jpg", reviews: []},  
+  {name: "Dharmesh Yelande", type: "Dancer", price: 14000, contact:"dharmesh@mail.com | 9876543228", video:"https://www.youtube.com/embed/O-833kO4K-o", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Dharmesh_Yelande_at_the_special_screening_of_the_film_Nawabzaade.jpg/800px-Dharmesh_Yelande_at_the_special_screening_of_the_film_Nawabzaade.jpg", reviews: []},  
+  {name: "Raghav Juyal", type: "Dancer", price: 13000, contact:"raghav@mail.com | 9876543229", video:"https://www.youtube.com/embed/DBW-HlXmbeo", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Raghav_Juyal_at_the_special_screening_of_the_film_Nawabzaade.jpg/800px-Raghav_Juyal_at_the_special_screening_of_the_film_Nawabzaade.jpg", reviews: []},  
+  {name: "Punit Pathak", type: "Dancer", price: 14500, contact:"punit@mail.com | 9876543230", video:"https://www.youtube.com/embed/vAGmC-jH2pM", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Punit_Pathak_at_the_special_screening_of_the_film_Nawabzaade.jpg/800px-Punit_Pathak_at_the_special_screening_of_the_film_Nawabzaade.jpg", reviews: []},  
+  {name: "Nora Fatehi", type: "Dancer", price: 25000, contact:"nora@mail.com | 9876543231", video:"https://www.youtube.com/embed/a4t2zt_a_yI", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Nora_Fatehi_snapped_at_T-Series_office_in_Andheri_09.jpg/800px-Nora_Fatehi_snapped_at_T-Series_office_in_Andheri_09.jpg", reviews: []},
+  {name: "Hrithik Roshan", type: "Dancer", price: 50000, contact:"hrithik@mail.com | 9876543232", video:"https://www.youtube.com/embed/HCmEUO3I6dM", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Hrithik_Roshan_at_the_special_screening_of_Super_30.jpg/800px-Hrithik_Roshan_at_the_special_screening_of_Super_30.jpg", reviews: []},
+  {name: "Tiger Shroff", type: "Dancer", price: 45000, contact:"tiger@mail.com | 9876543233", video:"https://www.youtube.com/embed/0uD-a_RJ89c", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Tiger_Shroff_at_the_trailer_launch_of_his_film_Munna_Michael.jpg/800px-Tiger_Shroff_at_the_trailer_launch_of_his_film_Munna_Michael.jpg", reviews: []},
+  {name: "Divine", type: "Rapper", price: 18000, contact:"divine@mail.com | 9876543214", video:"https://www.youtube.com/embed/3AtDnEC4zak", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Divine_at_the_screening_of_Gully_Boy_at_Berlinale_2019.jpg/800px-Divine_at_the_screening_of_Gully_Boy_at_Berlinale_2019.jpg", reviews: []},
+  {name: "Kumar Vishwas", type: "Poet", price: 12000, contact:"kumar@mail.com | 9876543215", video:"https://www.youtube.com/embed/OPf0YbXqDm0", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Dr._Kumar_Vishwas_addressing_a_press_conference.jpg/800px-Dr._Kumar_Vishwas_addressing_a_press_conference.jpg", reviews: []}
+  ,
+  {name: "Kapil Sharma", type: "Comedian", price: 40000, contact:"kapil@mail.com | 9876543234", video:"https://www.youtube.com/embed/9L5MVIeu1uU", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Kapil_Sharma_at_the_trailer_launch_of_his_film_Firangi.jpg/800px-Kapil_Sharma_at_the_trailer_launch_of_his_film_Firangi.jpg", reviews: []},
+  {name: "Anubhav Singh Bassi", type: "Comedian", price: 15000, contact:"bassi@mail.com | 9876543235", video:"https://www.youtube.com/embed/Tqsz6fjvhY8", img: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Anubhav_Singh_Bassi.jpg", reviews: []},  
+  {name: "Abhishek Upmanyu", type: "Comedian", price: 16000, contact:"upmanyu@mail.com | 9876543236", video:"https://www.youtube.com/embed/YjiFe8R313s", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Abhishek_Upmanyu_performing_at_his_show_Thoda_Saaf_Bol.jpg/800px-Abhishek_Upmanyu_performing_at_his_show_Thoda_Saaf_Bol.jpg", reviews: []},  
+  {name: "Kenny Sebastian", type: "Comedian", price: 17000, contact:"kenny@mail.com | 9876543237", video:"https://www.youtube.com/embed/O4-9Y-ZJ_I0", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Kenny_Sebastian_at_the_promotions_of_his_show_Die_Trying.jpg/800px-Kenny_Sebastian_at_the_promotions_of_his_show_Die_Trying.jpg", reviews: []},  
+  {name: "Badshah", type: "Rapper", price: 35000, contact:"badshah@mail.com | 9876543238", video:"https://www.youtube.com/embed/Ym-T8s-T9-I", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Badshah_at_the_screening_of_the_film_Machine.jpg/800px-Badshah_at_the_screening_of_the_film_Machine.jpg", reviews: []},  
+  {name: "Raftaar", type: "Rapper", price: 30000, contact:"raftaar@mail.com | 9876543239", video:"https://www.youtube.com/embed/K0-IP_fIuAA", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Raftaar_at_the_screening_of_the_film_Machine.jpg/800px-Raftaar_at_the_screening_of_the_film_Machine.jpg", reviews: []},  
+  {name: "MC Stan", type: "Rapper", price: 20000, contact:"mcstan@mail.com | 9876543240", video:"https://www.youtube.com/embed/sI8g0k252sA", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/MC_Stan_at_an_event_in_2023.jpg/800px-MC_Stan_at_an_event_in_2023.jpg", reviews: []},  
+  {name: "Rahat Indori", type: "Poet", price: 14000, contact:"rahat@mail.com | 9876543241", video:"https://www.youtube.com/embed/Gb5p9g59-nU", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Rahat_Indori_at_a_Mushaira_in_2016.jpg/800px-Rahat_Indori_at_a_Mushaira_in_2016.jpg", reviews: []},  
+  {name: "Javed Akhtar", type: "Poet", price: 25000, contact:"javed@mail.com | 9876543242", video:"https://www.youtube.com/embed/0_pM2D5zGkY", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Javed_Akhtar_at_the_launch_of_his_book_%27In_Other_Words%27.jpg/800px-Javed_Akhtar_at_the_launch_of_his_book_%27In_Other_Words%27.jpg", reviews: []},  
+  {name: "Gulzar", type: "Poet", price: 28000, contact:"gulzar@mail.com | 9876543243", video:"https://www.youtube.com/embed/k69yQ_8GjXg", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Gulzar_at_the_launch_of_Raavi_Paar_and_Other_Stories.jpg/800px-Gulzar_at_the_launch_of_Raavi_Paar_and_Other_Stories.jpg", reviews: []},
+  {name: "Lata Mangeshkar", type: "Singer", price: 50000, contact:"lata@mail.com | 9876543244", video:"https://www.youtube.com/embed/T-g-j1c4_50", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Lata_Mangeshkar_at_Adinath_Mangeshkar%27s_wedding.jpg/800px-Lata_Mangeshkar_at_Adinath_Mangeshkar%27s_wedding.jpg", reviews: []},
+  {name: "Kishore Kumar", type: "Singer", price: 48000, contact:"kishore@mail.com | 9876543245", video:"https://www.youtube.com/embed/b-Dq1a-2-sE", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Kishore_Kumar_in_1970.jpg/800px-Kishore_Kumar_in_1970.jpg", reviews: []},
+  {name: "Mohammed Rafi", type: "Singer", price: 49000, contact:"rafi@mail.com | 9876543246", video:"https://www.youtube.com/embed/IKwIeW_YqM8", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Mohammed_Rafi_1960s.jpg/800px-Mohammed_Rafi_1960s.jpg", reviews: []},
+  {name: "Vir Das", type: "Comedian", price: 20000, contact:"virdas@mail.com | 9876543250", video:"https://www.youtube.com/embed/8p4C6en6-5o", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Vir_Das_at_the_screening_of_his_show_Jestination_Unknown.jpg/800px-Vir_Das_at_the_screening_of_his_show_Jestination_Unknown.jpg", reviews: []},
+  {name: "Biswa Kalyan Rath", type: "Comedian", price: 18000, contact:"biswa@mail.com | 9876543251", video:"https://www.youtube.com/embed/6-wEAeNcA9o", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Biswa_Kalyan_Rath_at_the_promotions_of_his_show_Die_Trying.jpg/800px-Biswa_Kalyan_Rath_at_the_promotions_of_his_show_Die_Trying.jpg", reviews: []},
+  {name: "Emiway Bantai", type: "Rapper", price: 25000, contact:"emiway@mail.com | 9876543252", video:"https://www.youtube.com/embed/3_35vi_L4oI", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Emiway_Bantai_at_an_event_in_2022.jpg/800px-Emiway_Bantai_at_an_event_in_2022.jpg", reviews: []},
+  {name: "Yo Yo Honey Singh", type: "Rapper", price: 40000, contact:"yoyo@mail.com | 9876543253", video:"https://www.youtube.com/embed/1i-b-iyOxHA", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Honey_Singh_at_the_launch_of_his_new_album_Desi_Kalakaar.jpg/800px-Honey_Singh_at_the_launch_of_his_new_album_Desi_Kalakaar.jpg", reviews: []},
+  {name: "Prasoon Joshi", type: "Poet", price: 22000, contact:"prasoon@mail.com | 9876543254", video:"https://www.youtube.com/embed/Yp4zH8L38eM", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Prasoon_Joshi_at_the_65th_National_Film_Awards_in_New_Delhi.jpg/800px-Prasoon_Joshi_at_the_65th_National_Film_Awards_in_New_Delhi.jpg", reviews: []},
+  {name: "Munawwar Rana", type: "Poet", price: 15000, contact:"munawwar@mail.com | 9876543255", video:"https://www.youtube.com/embed/s2jkyM5cWlE", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Munawwar_Rana_at_a_mushaira_in_2012.jpg/800px-Munawwar_Rana_at_a_mushaira_in_2012.jpg", reviews: []}
+]; 
+
+function toggleAuth(event) {
+  event.preventDefault(); // Prevent the link from navigating
+  const signupFields = document.getElementById('signupFields');
+  const authTitle = document.getElementById('authTitle');
+  const authButton = document.getElementById('authButton');
+  const authToggle = document.getElementById('authToggle');
+  const authResult = document.getElementById('authResult');
+
+  // Clear any previous messages
+  if (authResult) authResult.innerText = '';
+
+  if (signupFields.style.display === 'none') {
+    // Switch to Signup mode
+    signupFields.style.display = 'block';
+    authTitle.innerText = 'Create an Account';
+    authButton.innerText = 'Signup';
+    authButton.onclick = signupUser;
+    authToggle.innerHTML = '<a href="#" onclick="toggleAuth(event)">Already have an account? Login</a>';
+    handleRoleChange(); // Check if artist fields need to be shown immediately
+  } else {
+    // Switch to Login mode
+    signupFields.style.display = 'none';
+    authTitle.innerText = 'User Login';
+    authButton.innerText = 'Login';
+    authButton.onclick = loginUser;
+    authToggle.innerHTML = '<a href="#" onclick="toggleAuth(event)">Don\'t have an account? Sign up</a>';
+    
+    // Also hide artist-specific fields when switching back to login
+    const artistSignupFields = document.getElementById("artistSignupFields");
+    if (artistSignupFields) {
+      artistSignupFields.style.display = 'none';
+    }
+  }
+}
+
+function loginUser() {
+  const userEl = document.getElementById("username");
+  const passEl = document.getElementById("password");
+  const roleEl = document.getElementById("role");
+  const authResult = document.getElementById("authResult");
+
+  if (!userEl || !passEl || !roleEl || !authResult) return;
+
+  const user = userEl.value;
+  const pass = passEl.value;
+  const role = roleEl.value;
+
+  if (user === "" || pass === "" || role === "") {
+    document.getElementById("authResult").innerText = "⚠️ Please enter all details!";
+    return;
+  }
+
+  // Check if user exists and credentials are correct
+  const foundUser = users.find(u => u.username === user && u.password === pass && u.role === role);
+  if (!foundUser) {
+    authResult.innerText = "❌ Invalid username, password, or role. Please try again or sign up.";
+    return;
+  }
+
+  loggedInUser = user;
+  loggedInRole = role;
+
+  if (role === "user") {
+    authResult.innerText = `✅ Welcome User ${user}!`;
+    const budgetSection = document.getElementById("budgetSection");
+    if (budgetSection) budgetSection.style.display = "block";
+  } else {
+    // Artist Login Logic
+    const artistProfile = artists.find(a => a.name.toLowerCase() === user.toLowerCase());
+    if (artistProfile) {
+      authResult.innerText = `🎤 Welcome Artist ${user}!`;
+      const artistSection = document.getElementById("artistProfileSection");
+      const artistWelcome = document.getElementById("artistWelcome");
+      const artistDetails = document.getElementById("artistProfileDetails");
+
+      displayArtistDashboard(artistProfile);
+    } else {
+      authResult.innerText = `❌ No artist profile found for "${user}".`;
+    }
+  }
+}
+
+function handleRoleChange() {
+  const roleEl = document.getElementById("role");
+  const artistSignupFields = document.getElementById("artistSignupFields");
+  const signupFields = document.getElementById('signupFields');
+
+  if (!roleEl || !artistSignupFields || !signupFields) return;
+
+  // Show artist-specific fields only in signup mode when 'artist' is selected
+  const isSignupMode = signupFields.style.display === 'block';
+  artistSignupFields.style.display = (roleEl.value === 'artist' && isSignupMode) ? 'block' : 'none';
+}
+
+function signupUser() {
+  const nameEl = document.getElementById("fullName");
+  const userEl = document.getElementById("username");
+  const phoneEl = document.getElementById("phone");
+  const passEl = document.getElementById("password");
+  const roleEl = document.getElementById("role");
+  const authResult = document.getElementById("authResult");
+
+  if (!nameEl || !userEl || !phoneEl || !passEl || !roleEl || !authResult) return;
+
+  const fullName = nameEl.value;
+  const user = userEl.value;
+  const phone = phoneEl.value;
+  const pass = passEl.value;
+  const role = roleEl.value;
+
+  if (!fullName || !user || !phone || !pass || !role) {
+    document.getElementById("authResult").innerText = "⚠️ Please enter all details to signup!";
+    return;
+  }
+
+  if (role === 'artist') {
+    const artistTypeEl = document.getElementById("artistTypeSignup");
+    const artistPriceEl = document.getElementById("artistPrice");
+    if (!artistTypeEl || !artistPriceEl) return;
+
+    const artistType = artistTypeEl.value;
+    const artistPrice = artistPriceEl.value;
+
+    if (!artistType || !artistPrice) {
+      authResult.innerText = "⚠️ As an artist, please fill in your category and price.";
+      return;
+    }
+  }
+
+  // Check if username already exists
+  if (users.find(u => u.username === user)) {
+    authResult.innerText = "⚠️ This username is already taken. Please choose another one.";
+    return;
+  }
+
+  // Add the new user to our in-memory store
+  users.push({ fullName: fullName, username: user, phone: phone, password: pass, role: role });
+
+  // If the new user is an artist, add them to the artists array as well
+  if (role === 'artist') {
+    const artistType = document.getElementById("artistTypeSignup").value;
+    const artistPrice = Number(document.getElementById("artistPrice").value);
+    const newArtist = {
+      name: fullName, // The artist's public name is their full name
+      type: artistType,
+      price: artistPrice,
+      contact: `${user}@mail.com | ${phone}`, // Auto-generate contact from signup info
+      video: "https://www.youtube.com/embed/example", // Default video
+      img: "https://via.placeholder.com/200", // Default image
+      reviews: [] // Initialize with empty reviews
+    };
+    artists.push(newArtist);
+  }
+
+  authResult.innerText = `✅ Account created for ${user} as ${role}. You can now log in!`;
+  if (role === 'artist') alert("Welcome! Please log in and use the 'Edit Profile' button to add your picture and video link.");
+}
+
+function startVc(artistName) {
+  alert(`📞 Starting VC Call Trial with ${artistName}...`);
+}
+
+function closeEditModal() {
+  const editModal = document.getElementById("editProfileModal");
+  if (editModal) editModal.style.display = "none";
+}
+
+function closeReviewModal() {
+  const reviewModal = document.getElementById("reviewModal");
+  if (reviewModal) reviewModal.style.display = "none";
+}
+
+function closeDisplayReviewsModal() {
+  const displayReviewsModal = document.getElementById("displayReviewsModal");
+  if (displayReviewsModal) displayReviewsModal.style.display = "none";
+}
+
+function closeForgotPasswordModal() {
+  const forgotPasswordModal = document.getElementById("forgotPasswordModal");
+  if (forgotPasswordModal) forgotPasswordModal.style.display = "none";
+}
+
+function applyFilter() {
+  const typeEl = document.getElementById("artistType");
+  const resultBox = document.getElementById("budgetResult");
+  const cardBox = document.getElementById("artistCards");
+
+  if (!typeEl || !resultBox || !cardBox) return;
+
+  cardBox.style.display = "block";
+
+  const type = typeEl.value;
+
+  filteredArtists = artists.filter(a => {
+    // If no type is selected, show all artists. Otherwise, match the type.
+    return type === "" || a.type === type;
+  });
+
+  resultBox.innerHTML = type ? `🎯 Showing results for ${type}s` : `🎯 Showing all artists`;
+  resultBox.style.display = "block";
+
+  currentPage = 1; // Reset to first page
+
+  displayPage(currentPage);
+  setupPagination();
+}
+
+function displayPage(page) {
+  const cardBox = document.getElementById("artistCards");
+  if (!cardBox) return;
+  
+  cardBox.innerHTML = "";
+  currentPage = page;
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedItems = filteredArtists.slice(startIndex, endIndex);
+
+  for (const a of paginatedItems) {
+    cardBox.innerHTML += `
+      <div class="artist-card">
+        <h3>${a.name}</h3>
+        <img src="${a.img}" alt="${a.name}" width="200" height="200"><br><br>
+        <p>⭐ <b>${getAverageRating(a)}</b> (${a.reviews.length} reviews)</p>
+        <span><b>${a.type}</b></span><br>
+        <span style="color:#ff6600;">₹${a.price}</span><br>
+        <small>📧 ${a.contact}</small><br><br>
+        <button onclick="bookArtist('${a.name}', ${a.price})" class="book-btn">Book Now</button>
+        <button onclick="startVc('${a.name}')" class="vc-btn">🎤 VC Call Trial</button>        
+        <button onclick="openReviewModal('${a.name}')" class="review-btn" style="background: #9b59b6; color: white;">Leave a Review</button>
+        <button onclick="displayReviews('${a.name}')" class="msg-btn" style="background: #6c757d;">View Reviews</button>
+        <iframe width="220" height="130" src="${a.video}" frameborder="0" allowfullscreen></iframe>
+      </div>
+    `;
+  }
+
+  if (filteredArtists.length === 0) {
+    cardBox.innerHTML = `<p style='color:red;'>No artists found.</p>`;
+  }
+}
+
+function bookArtist(artistName, price) {
+  if (!loggedInUser) {
+    alert("⚠️ Please log in as a user to book an artist!");
+    return;
+  }
+  const message = `I would like to book you for an event. My budget is ₹${price}.`;
+  const requestId = requests.length + 1;
+  requests.push({ id: requestId, fromUser: loggedInUser, toArtist: artistName, type: 'Booking', price: price, message: message, status: 'pending' });
+  alert(`✅ Your booking request has been sent to ${artistName}!`);
+}
+
+function setupPagination() {
+  const paginationControls = document.getElementById("paginationControls");
+  if (!paginationControls) return;
+
+  paginationControls.innerHTML = "";
+  const pageCount = Math.ceil(filteredArtists.length / rowsPerPage);
+
+  for (let i = 1; i <= pageCount; i++) {
+    const btn = document.createElement("button");
+    btn.innerText = i;
+    btn.classList.add("pagination-btn");
+    if (i === currentPage) {
+      btn.classList.add("active");
+    }
+    btn.addEventListener("click", () => {
+      displayPage(i);
+      setupPagination(); // Re-render to update active button
+    });
+    paginationControls.appendChild(btn);
+  }
+}
+
+function displayArtistDashboard(artistProfile) {
+  const artistSection = document.getElementById("artistProfileSection");
+  const artistWelcome = document.getElementById("artistWelcome");
+  const artistDetails = document.getElementById("artistProfileDetails");
+  const artistRequestsDiv = document.getElementById("artistRequests");
+  const editProfileBtn = document.getElementById("editProfileBtn");
+
+  if (!artistSection || !artistWelcome || !artistDetails || !artistRequestsDiv) return;
+
+  // Display artist's own profile info
+  artistWelcome.innerText = `Welcome, ${artistProfile.name}!`;
+  artistDetails.innerHTML = `
+    <div class="artist-card" style="margin: 0 auto; display: block; background: #f0f8ff;">
+      <p><strong>Type:</strong> ${artistProfile.type}</p>
+      <p><strong>Price:</strong> ₹${artistProfile.price}</p>
+      <p><strong>Contact:</strong> ${artistProfile.contact}</p>
+    </div>`;
+
+  // Filter for pending requests for this artist
+  const pendingRequests = requests.filter(r => r.toArtist === artistProfile.name && r.status === 'pending');
+
+  artistRequestsDiv.innerHTML = ""; // Clear previous requests
+  if (pendingRequests.length === 0) {
+    artistRequestsDiv.innerHTML = "<p>You have no new requests.</p>";
+  } else {
+    pendingRequests.forEach(req => {
+      artistRequestsDiv.innerHTML += `
+        <div class="artist-card" style="text-align: left; background: #fff8e1;">
+          <p><strong>From:</strong> ${req.fromUser}</p>
+          <p><strong>Type:</strong> ${req.type}</p>
+          ${req.type === 'Booking' ? `<p><strong>Budget:</strong> ₹${req.price}</p>` : ''}
+          <p><strong>Message:</strong> "${req.message}"</p>
+          <button onclick="handleRequest(${req.id}, true)" class="book-btn">Accept</button>
+          <button onclick="handleRequest(${req.id}, false)" class="cancel-btn">Reject</button>
+        </div>
+      `;
+    });
+  }
+
+  artistSection.style.display = "block";
+  editProfileBtn.style.display = "inline-block";
+}
+
+function handleRequest(requestId, isAccepted) {
+  const request = requests.find(r => r.id === requestId);
+  if (!request) return;
+
+  request.status = isAccepted ? 'accepted' : 'rejected';
+
+  // Simulate notifying the user
+  alert(`Request from ${request.fromUser} has been ${request.status}.`);
+
+  // Re-render the dashboard to remove the handled request
+  const artistProfile = artists.find(a => a.name === request.toArtist);
+  if (artistProfile) {
+    displayArtistDashboard(artistProfile);
+  }
+}
+
+function openEditProfileModal() {
+  const artistProfile = artists.find(a => a.name === loggedInUser || a.contact.includes(`${loggedInUser}@mail.com`));
+  if (!artistProfile) {
+    alert("Could not find your artist profile.");
+    return;
+  }
+
+  // Populate the modal fields with current data
+  document.getElementById("editArtistPrice").value = artistProfile.price;
+  document.getElementById("editArtistImg").value = artistProfile.img;
+  document.getElementById("editArtistVideo").value = artistProfile.video;
+
+  // Show the modal
+  const editModal = document.getElementById("editProfileModal");
+  if (editModal) editModal.style.display = "block";
+}
+
+function saveProfileChanges() {
+  const artistProfile = artists.find(a => a.name === loggedInUser || a.contact.includes(`${loggedInUser}@mail.com`));
+  if (!artistProfile) {
+    alert("Error saving changes. Profile not found.");
+    return;
+  }
+
+  // Get new values from the modal
+  const newPrice = document.getElementById("editArtistPrice").value;
+  const newImg = document.getElementById("editArtistImg").value;
+  const newVideo = document.getElementById("editArtistVideo").value;
+
+  // Update the artist object in the artists array
+  artistProfile.price = Number(newPrice);
+  artistProfile.img = newImg;
+  artistProfile.video = newVideo;
+
+  alert("✅ Your profile has been updated successfully!");
+
+  // Close the modal and refresh the dashboard view
+  closeEditModal();
+  displayArtistDashboard(artistProfile);
+}
+
+function getAverageRating(artist) {
+  if (!artist.reviews || artist.reviews.length === 0) {
+    return "No ratings";
+  }
+  const total = artist.reviews.reduce((acc, review) => acc + review.rating, 0);
+  return (total / artist.reviews.length).toFixed(1);
+}
+
+function openReviewModal(artistName) {
+  if (!loggedInUser) {
+    alert("⚠️ Please log in to leave a review.");
+    return;
+  }
+  selectedArtist = artistName;
+  document.getElementById("reviewModalArtistName").innerText = `Leave a Review for ${artistName}`;
+  document.getElementById("reviewModal").style.display = "block";
+  // Reset stars
+  setRating(0);
+  document.getElementById("reviewMessage").value = "";
+}
+
+function setRating(rating) {
+  document.getElementById("reviewRating").value = rating;
+  const stars = document.querySelectorAll(".star-rating span");
+  stars.forEach(star => {
+    star.innerHTML = star.dataset.value <= rating ? "★" : "☆";
+  });
+}
+
+function submitReview() {
+  const rating = Number(document.getElementById("reviewRating").value);
+  const message = document.getElementById("reviewMessage").value;
+
+  if (rating === 0) {
+    alert("⚠️ Please select a star rating.");
+    return;
+  }
+
+  const artist = artists.find(a => a.name === selectedArtist);
+  if (artist) {
+    artist.reviews.push({
+      user: loggedInUser,
+      rating: rating,
+      comment: message
+    });
+    alert("✅ Thank you for your review!");
+    closeReviewModal();
+    // Refresh the cards if they are visible
+    if (document.getElementById("artistCards").innerHTML !== "") {
+      applyFilter();
+    }
+  }
+}
+
+function displayReviews(artistName) {
+  const artist = artists.find(a => a.name === artistName);
+  if (!artist) return;
+
+  const reviewsList = document.getElementById("reviewsList");
+  const modalTitle = document.getElementById("displayReviewsArtistName");
+  const displayModal = document.getElementById("displayReviewsModal");
+
+  modalTitle.innerText = `Reviews for ${artistName}`;
+  reviewsList.innerHTML = "";
+
+  if (artist.reviews.length === 0) {
+    reviewsList.innerHTML = "<p>No reviews yet.</p>";
+  } else {
+    artist.reviews.forEach(review => {
+      let stars = "";
+      for (let i = 0; i < 5; i++) {
+        stars += i < review.rating ? "★" : "☆";
+      }
+      reviewsList.innerHTML += `
+        <div class="review-item">
+          <p><strong>${review.user}</strong> <span style="color: #ffcc00;">${stars}</span></p>
+          <p>"${review.comment}"</p>
+        </div>
+      `;
+    });
+  }
+
+  displayModal.style.display = "block";
+}
+
+function openForgotPasswordModal(event) {
+  event.preventDefault();
+  const forgotPasswordModal = document.getElementById("forgotPasswordModal");
+  if (forgotPasswordModal) forgotPasswordModal.style.display = "block";
+}
+
+function recoverPassword() {
+  const usernameEl = document.getElementById("forgotUsername");
+  if (!usernameEl) return;
+
+  const username = usernameEl.value;
+  if (!username) {
+    alert("⚠️ Please enter a username.");
+    return;
+  }
+
+  const foundUser = users.find(u => u.username === username);
+  if (foundUser) {
+    alert(`✅ Account found!\n\nYour password is: ${foundUser.password}\n\nPlease store it securely.`);
+    closeForgotPasswordModal();
+  } else {
+    alert(`❌ No account found with the username "${username}".`);
+  }
+}
+
+  </script>
+</body>
+</html>
